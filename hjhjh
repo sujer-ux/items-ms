@@ -1,0 +1,2636 @@
+Зацени
+
+# ╨б╤В╤А╤Г╨║╤В╤Г╤А╨░ ╨┐╤А╨╛╨╡╨║╤В╨░
+
+## ╨б╤В╤А╤Г╨║╤В╤Г╤А╨░ ╨┐╤А╨╛╨╡╨║╤В╨░
+```
+.
+|-- LICENSE
+|-- Makefile
+|-- README.md
+|-- README_RU.md
+|-- bin
+|   `-- hypr-dock
+|-- configs
+|   |-- config.jsonc
+|   |-- pinned.json
+|   `-- themes
+|       `-- lotos
+|           |-- lotos.jsonc
+|           |-- point
+|           |   |-- 0.svg
+|           |   |-- 1.svg
+|           |   |-- 2.svg
+|           |   `-- 3.svg
+|           `-- style.css
+|-- docs
+|   `-- tasks
+|       `-- ipc
+|           `-- ipc-main.md
+|-- generate_md.sh
+|-- go.mod
+|-- go.sum
+|-- internal
+|   |-- app
+|   |   `-- app.go
+|   |-- hypr
+|   |   |-- hyprEvents
+|   |   |   `-- events.go
+|   |   `-- hyprOpt
+|   |       `-- hypr.option.go
+|   |-- item
+|   |   |-- item.go
+|   |   `-- popup.go
+|   |-- layering
+|   |   `-- layering.go
+|   |-- pkg
+|   |   |-- cfg
+|   |   |   `-- cfg.go
+|   |   |-- desktop
+|   |   |   `-- desktop.go
+|   |   |-- flags
+|   |   |   `-- flags.go
+|   |   |-- signals
+|   |   |   `-- signals.go
+|   |   `-- utils
+|   |       |-- common.utils.go
+|   |       |-- gtk.utils.go
+|   |       `-- os.utils.go
+|   |-- settings
+|   |   `-- settings.go
+|   `-- state
+|       `-- state.go
+|-- main
+|   `-- main.go
+|-- pkg
+|   `-- ipc
+|       |-- getters.go
+|       |-- ipc.go
+|       |-- listeners.go
+|       |-- structs.go
+|       `-- utils.go
+`-- project_structure.md
+
+27 directories, 39 files
+```
+
+## ./configs/pinned.json
+```json
+{}```
+
+## ./configs/config.jsonc
+```jsonc
+{
+    "CurrentTheme": "lotos",
+
+    // Icon size (px) (default 23)
+    "IconSize": 23,
+
+    // Window overlay layer height (auto, background, bottom, top, overlay) (default "auto")
+    "Layer": "auto",
+
+    // Window position on screen (top, bottom, left, right) (default "bottom")
+    "Position": "bottom",
+
+    // Use system gap (true, false) (default "true")
+    "SystemGapUsed": "true",
+
+    // Indent from the edge of the screen (px) (default 8)
+    "Margin": 8
+}
+```
+
+## ./configs/themes/lotos/lotos.jsonc
+```jsonc
+{
+    // Blur window ("true", "false") (default "on")
+    "Blur": "true",
+
+    // Distance between elements (px) (default 9)
+    "Spacing": 5
+}```
+
+## ./configs/themes/lotos/point/1.svg
+```svg
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="9" version="1.1" viewBox="0 0 12.7 2.3812" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<circle cx="6.35" cy="1.0583" r=".9388" fill="#0ff"/>
+</svg>
+```
+
+## ./configs/themes/lotos/point/3.svg
+```svg
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="9" version="1.1" viewBox="0 0 12.7 2.3812" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(-1.6591)" fill="#0ff">
+<circle cx="4.6917" cy="1.0583" r=".9388"/>
+<circle cx="8.0083" cy="1.0583" r=".9388"/>
+<circle cx="11.327" cy="1.0614" r=".9388"/>
+</g>
+</svg>
+```
+
+## ./configs/themes/lotos/point/2.svg
+```svg
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="9" version="1.1" viewBox="0 0 12.7 2.3812" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<g fill="#0ff">
+<circle cx="4.6917" cy="1.0583" r=".9388"/>
+<circle cx="8.0083" cy="1.0583" r=".9388"/>
+</g>
+</svg>
+```
+
+## ./configs/themes/lotos/point/0.svg
+```svg
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="48" height="8" version="1.1" viewBox="0 0 12.7 2.1167" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"></svg>```
+
+## ./configs/themes/lotos/style.css
+```css
+window {
+  background-color: transparent;
+}
+
+#app {
+  background-color: rgba(42, 41, 49, 0.473);
+  border-radius: 12px;
+  padding: 5px;
+}
+
+button {
+  background-color: rgba(0, 0, 0, 0);
+  padding: 4px;
+  border-radius: 12px;
+  border: none;
+}```
+
+## ./pkg/ipc/utils.go
+```go
+package ipc
+
+import (
+	"errors"
+	"log"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
+)
+
+func SearchClientByAddress(address string) (Client, error) {
+	clients, err := GetClients()
+	if err != nil {
+		log.Println(err)
+		return Client{}, err
+	}
+
+	for _, ipcClient := range clients {
+		if ipcClient.Address == address {
+			return ipcClient, nil
+		}
+	}
+
+	err = errors.New("Client non found by address: " + address)
+	return Client{}, err
+}
+
+func getHyprPathes() (XDGRuntimeDirHypr string, HIS string) {
+	XDGRuntimeDirHypr = filepath.Join(os.Getenv("XDG_RUNTIME_DIR"), "hypr")
+	HIS = os.Getenv("HYPRLAND_INSTANCE_SIGNATURE")
+	return XDGRuntimeDirHypr, HIS
+}
+
+func getUnixSockAdress() (unixSockAdress string) {
+	XDGRuntimeDirHypr, HIS := getHyprPathes()
+
+	return filepath.Join(XDGRuntimeDirHypr, HIS, ".socket.sock")
+}
+
+func getUnixSock2Adress() (unixSock2Adress *net.UnixAddr) {
+	XDGRuntimeDirHypr, HIS := getHyprPathes()
+
+	return &net.UnixAddr{
+		Name: filepath.Join(XDGRuntimeDirHypr, HIS, ".socket2.sock"),
+		Net:  "unix",
+	}
+}
+
+func splitEvent(multiLineEvent string) []string {
+	events := strings.Split(multiLineEvent, "\n")
+
+	var filteredEvents []string
+	for _, event := range events {
+		event = strings.TrimSpace(event)
+		if event != "" {
+			filteredEvents = append(filteredEvents, event)
+		}
+	}
+
+	return filteredEvents
+}
+```
+
+## ./pkg/ipc/getters.go
+```go
+package ipc
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/goccy/go-json"
+)
+
+func GetMonitors() ([]Monitor, error) {
+	var monitors []Monitor
+	response, err := Hyprctl("j/monitors")
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(response), &monitors)
+	return monitors, err
+}
+
+func GetClients() ([]Client, error) {
+	var clients []Client
+	response, err := Hyprctl("j/clients")
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(response), &clients)
+	return clients, err
+}
+
+func GetActiveWindow() (*Client, error) {
+	var activeWindow Client
+	response, err := Hyprctl("j/activewindow")
+	if err != nil {
+		log.Printf("Failed to get active window: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(response), &activeWindow)
+	if err != nil {
+		log.Printf("Failed to unmarshal active window: %v", err)
+		return nil, err
+	}
+	return &activeWindow, nil
+}
+
+func GetOption(option string, v interface{}) error {
+	cmd := fmt.Sprintf("j/getoption %s", option)
+	response, err := Hyprctl(cmd)
+	if err != nil {
+		log.Printf("Failed to execute Hyprctl command for option '%s': %v", option, err)
+		return err
+	}
+	err = json.Unmarshal(response, v)
+	if err != nil {
+		log.Printf("Failed to unmarshal JSON response for option '%s': %v", option, err)
+		return err
+	}
+	return nil
+}
+```
+
+## ./pkg/ipc/ipc.go
+```go
+package ipc
+
+import (
+	"log"
+	"net"
+	"time"
+)
+
+func Hyprctl(cmd string) (response []byte, err error) {
+	conn, err := net.Dial("unix", getUnixSockAdress())
+	if err != nil {
+		return nil, err
+	}
+
+	message := []byte(cmd)
+	_, err = conn.Write(message)
+	if err != nil {
+		return nil, err
+	}
+
+	response = make([]byte, 102400)
+	n, err := conn.Read(response)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	return response[:n], nil
+}
+
+func InitHyprEvents() {
+	for {
+		unixConnect, err := net.DialUnix("unix", nil, getUnixSock2Adress())
+		if err != nil {
+			log.Printf("Failed to connect to Unix socket: %v. Retrying in 5 seconds...", err)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		defer unixConnect.Close()
+
+		for {
+			buffer := make([]byte, 10240)
+			unixNumber, err := unixConnect.Read(buffer)
+			if err != nil {
+				log.Printf("Error reading from Unix socket: %v. Reconnecting...", err)
+				break
+			}
+
+			events := splitEvent(string(buffer[:unixNumber]))
+			for _, event := range events {
+				go DispatchEvent(event)
+			}
+		}
+	}
+}
+```
+
+## ./pkg/ipc/structs.go
+```go
+package ipc
+
+type Workspace struct {
+	Id              int    `json:"id"`
+	Name            string `json:"name"`
+	Monitor         string `json:"monitor"`
+	Windows         int    `json:"windows"`
+	Hasfullscreen   bool   `json:"hasfullscreen"`
+	Lastwindow      string `json:"lastwindow"`
+	Lastwindowtitle string `json:"lastwindowtitle"`
+}
+
+type Monitor struct {
+	Id          int     `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Make        string  `json:"make"`
+	Model       string  `json:"model"`
+	Serial      string  `json:"serial"`
+	Width       int     `json:"width"`
+	Height      int     `json:"height"`
+	RefreshRate float64 `json:"refreshRate"`
+	X           int     `json:"x"`
+	Y           int     `json:"y"`
+
+	ActiveWorkspace struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"activeWorkspace"`
+
+	Reserved   []int   `json:"reserved"`
+	Scale      float64 `json:"scale"`
+	Transform  int     `json:"transform"`
+	Focused    bool    `json:"focused"`
+	DpmsStatus bool    `json:"dpmsStatus"`
+	Vrr        bool    `json:"vrr"`
+}
+
+type Client struct {
+	Address string `json:"address"`
+	Mapped  bool   `json:"mapped"`
+	Hidden  bool   `json:"hidden"`
+	At      []int  `json:"at"`
+	Size    []int  `json:"size"`
+
+	Workspace struct {
+		Id   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"workspace"`
+
+	Floating         bool          `json:"floating"`
+	Pseudo           bool          `json:"pseudo"`
+	Monitor          int           `json:"monitor"`
+	Class            string        `json:"class"`
+	Title            string        `json:"title"`
+	InitialClass     string        `json:"initialClass"`
+	InitialTitle     string        `json:"initialTitle"`
+	Pid              int           `json:"pid"`
+	Xwayland         bool          `json:"xwayland"`
+	Pinned           bool          `json:"pinned"`
+	Fullscreen       int           `json:"fullscreen"`
+	FullscreenClient int           `json:"fullscreenClient"`
+	Grouped          []interface{} `json:"grouped"`
+	Tags             []interface{} `json:"tags"`
+	Swallowing       string        `json:"swallowing"`
+	FocusHistoryID   int           `json:"focusHistoryID"`
+	InhibitingIdle   bool          `json:"inhibitingIdle"`
+}
+```
+
+## ./pkg/ipc/listeners.go
+```go
+package ipc
+
+import (
+	"strings"
+	"sync"
+)
+
+type EventListener struct {
+	Event   string
+	Handler func(string)
+	ID      int
+	running bool
+}
+
+type eventManager struct {
+	eventListeners  []*EventListener
+	listenerCounter int
+	mu              sync.Mutex
+}
+
+var (
+	eventManagerInstance *eventManager
+	once                 sync.Once
+)
+
+func getEventManager() *eventManager {
+	once.Do(func() {
+		eventManagerInstance = &eventManager{
+			eventListeners:  make([]*EventListener, 0),
+			listenerCounter: 0,
+		}
+	})
+	return eventManagerInstance
+}
+
+func AddEventListener(event string, handler func(string), running bool) *EventListener {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	listener := &EventListener{
+		Event:   event,
+		Handler: handler,
+		ID:      em.listenerCounter,
+		running: running,
+	}
+
+	em.eventListeners = append(em.eventListeners, listener)
+	em.listenerCounter++
+	return listener
+}
+
+func DispatchEvent(event string) {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	for _, listener := range em.eventListeners {
+		if strings.Contains(event, listener.Event) && listener.running {
+			listener.Handler(event)
+		}
+	}
+}
+
+func (el *EventListener) Run() {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	for i := range em.eventListeners {
+		if em.eventListeners[i].ID == el.ID {
+			em.eventListeners[i].running = true
+			break
+		}
+	}
+}
+
+func (el *EventListener) Pause() {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	for i := range em.eventListeners {
+		if em.eventListeners[i].ID == el.ID {
+			em.eventListeners[i].running = false
+			break
+		}
+	}
+}
+
+func (el *EventListener) IsRunning() bool {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	for i := range em.eventListeners {
+		if em.eventListeners[i].ID == el.ID {
+			return em.eventListeners[i].running
+		}
+	}
+	return false
+}
+
+func (el *EventListener) Remove() {
+	em := getEventManager()
+	em.mu.Lock()
+	defer em.mu.Unlock()
+
+	for i := range em.eventListeners {
+		if em.eventListeners[i].ID == el.ID {
+			em.eventListeners = append(em.eventListeners[:i], em.eventListeners[i+1:]...)
+			break
+		}
+	}
+}
+```
+
+## ./Makefile
+```Makefile
+LOCAL_CONFIG_DIR = $(HOME)/.config/hypr-dock
+
+PROJECT_BIN_DIR = bin
+PROJECT_CONFIG_DIR = configs
+
+EXECUTABLE = hypr-dock
+
+install:
+		sudo cp $(PROJECT_BIN_DIR)/$(EXECUTABLE) /usr/bin/
+
+		mkdir -p $(LOCAL_CONFIG_DIR)
+		cp -r $(PROJECT_CONFIG_DIR)/* $(LOCAL_CONFIG_DIR)/
+
+		@echo "Installation completed."
+
+uninstall:
+		sudo rm -f /usr/bin/$(EXECUTABLE)
+
+		rm -rf $(LOCAL_CONFIG_DIR)
+
+		@echo "Installation removed."
+
+get:
+		go mod tidy
+
+build:
+		go build -v -o bin/hypr-dock ./main/.
+
+run:
+		go run .
+
+exec:
+		./bin/hypr-dock```
+
+## ./README.md
+```md
+# hypr-dock
+### Interactive Dock Panel for Hyprland
+
+![screenshot1](https://github.com/user-attachments/assets/b98cdf7c-83b0-4c12-9da1-ada9e1543178)
+![250318_10h19m33s_screenshot](https://github.com/user-attachments/assets/3ef014e4-4613-4e28-b186-71ce262db404)
+
+https://github.com/user-attachments/assets/50d26918-ac74-4b3b-b384-9dd98c62a799
+
+## Installation
+
+### Dependencies
+
+- go (make)
+- gtk3
+- gtk-layer-shell
+
+### Installation
+```bash
+git clone https://github.com/lotos-linux/hypr-dock.git
+cd hypr-dock
+make get
+make build
+make install
+```
+## Launching
+
+### Launch Parameters:
+```text
+-config string
+   config file (default "~/.config/hypr-dock/config.jsonc")
+-theme string
+   theme (default "lotos")
+-help
+```
+#### All parameters are optional.
+
+The default configuration and themes are installed in `~/.config/hypr-dock`
+
+### Add the following to hyprland.conf for autostart:
+```text
+exec-once = hypr-dock
+bind = Super, D, exec, hypr-dock
+```
+
+#### The dock supports only one running instance, so launching it again will close the previous instance.
+
+## Configuration
+
+### The following parameters are available in config.jsonc:
+```jsonc
+{
+    "CurrentTheme": "lotos",
+
+    // Icon size (px) (default 23)
+    "IconSize": 23,
+
+    // Window overlay layer height (auto, background, bottom, top, overlay) (default "auto")
+    "Layer": "auto",
+
+    // Window position on screen (top, bottom, left, right) (default "bottom")
+    "Position": "bottom",
+
+    // Use system gap (true, false) (default "true")
+    "SystemGapUsed": "true",
+
+    // Indent from the edge of the screen (px) (default 8)
+    "Margin": 8
+}
+```
+#### If a parameter is not specified, the default value will be used.
+
+## Explanation of Non-Obvious Parameters
+### Layer
+- With `"Layer": "auto"` the dock layer is below all windows, but if you move the mouse cursor to the edge of the screen, the dock rises above them.
+### SystemGapUsed
+- With `"SystemGapUsed": "true"` the dock will set its margin from the edge of the screen based on the hyprland configuration, specifically the `general:gaps_out` value. The dock will dynamically adapt to changes in the hyprland configuration.
+- With `"SystemGapUsed": "false"` the margin from the edge of the screen will be set by the `Margin` parameter.
+
+### There is also a pinned.json file for pinned applications
+#### Example:
+```json
+{
+  "Pinned": [
+    "firefox",
+    "org.telegram.desktop",
+    "code-oss",
+    "kitty"
+  ]
+}
+```
+You can edit it manually. But why? ┬п\_(уГД)_/┬п
+
+## Themes
+
+#### Themes are located in the `~/.config/hypr-dock/themes/` folder
+
+### A theme consists of:
+- `[theme_name].jsonc`, for example `lotos.jsonc`
+- `style.css`
+- A folder with `svg` files for indicating the number of running applications
+
+### The theme configuration has only two parameters:
+```jsonc
+{
+    // Blur window ("on", "off") (default "on")
+    "Blur": "on",
+
+    // Distance between elements (px) (default 8)
+    "Spacing": 9
+}
+```
+#### Feel free to customize the style.css file as you like.
+
+## Libraries Used
+- [github.com/akshaybharambe14/go-jsonc](https://github.com/akshaybharambe14/go-jsonc) v1.0.0
+- [github.com/allan-simon/go-singleinstance](https://github.com/allan-simon/go-singleinstance) v0.0.0-20210120080615-d0997106ab37
+- [github.com/dlasky/gotk3-layershell](https://github.com/dlasky/gotk3-layershell) v0.0.0-20240515133811-5c5115f0d774
+- [github.com/goccy/go-json](https://github.com/goccy/go-json) v0.10.3
+- [github.com/gotk3/gotk3](https://github.com/gotk3/gotk3) v0.6.3```
+
+## ./go.sum
+```sum
+github.com/akshaybharambe14/go-jsonc v1.0.0 h1:kRlZA2+aj/sW64MpKXO6jh83PQd2hPBWXLONDNiamdY=
+github.com/akshaybharambe14/go-jsonc v1.0.0/go.mod h1:GbNZ8I2Hnjs8r9XilRTid0hGgQDU59noO2csl4ItxXk=
+github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37 h1:28uU3TtuvQ6KRndxg9TrC868jBWmSKgh0GTXkACCXmA=
+github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37/go.mod h1:6AXRstqK+32jeFmw89QGL2748+dj34Av4xc/I9oo9BY=
+github.com/dlasky/gotk3-layershell v0.0.0-20240515133811-5c5115f0d774 h1:o87OVL4olQBlVwN3+NSVQpS6gj9FWUYtxOfHXWZigUE=
+github.com/dlasky/gotk3-layershell v0.0.0-20240515133811-5c5115f0d774/go.mod h1:JHLx2Wz4mAPVwn4PFhC69ydwyHP4A3wQvlg7HKVVc1U=
+github.com/goccy/go-json v0.10.3 h1:KZ5WoDbxAIgm2HNbYckL0se1fHD6rz5j4ywS6ebzDqA=
+github.com/goccy/go-json v0.10.3/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
+github.com/gotk3/gotk3 v0.6.1/go.mod h1:/hqFpkNa9T3JgNAE2fLvCdov7c5bw//FHNZrZ3Uv9/Q=
+github.com/gotk3/gotk3 v0.6.3 h1:+Ke4WkM1TQUNOlM2TZH6szqknqo+zNbX3BZWVXjSHYw=
+github.com/gotk3/gotk3 v0.6.3/go.mod h1:/hqFpkNa9T3JgNAE2fLvCdov7c5bw//FHNZrZ3Uv9/Q=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+muzzammil.xyz/jsonc v0.0.0-20190906142622-1265e9b150c6/go.mod h1:rFv8tUUKe+QLh7v02BhfxXEf4ZHhYD7unR93HL/1Uvo=
+```
+
+## ./go.mod
+```mod
+module hypr-dock
+
+go 1.22.3
+
+require (
+	github.com/akshaybharambe14/go-jsonc v1.0.0
+	github.com/allan-simon/go-singleinstance v0.0.0-20210120080615-d0997106ab37
+	github.com/dlasky/gotk3-layershell v0.0.0-20240515133811-5c5115f0d774
+	github.com/goccy/go-json v0.10.3
+	github.com/gotk3/gotk3 v0.6.3
+	github.com/pkg/errors v0.9.1
+)
+```
+
+## ./README_RU.md
+```md
+# hypr-dock
+### ╨Ш╨╜╤В╨╡╤А╨░╨║╤В╨╛╨▓╨╜╨░╤П ╨┤╨╛╨║-╨┐╨░╨╜╨╡╨╗╤М ╨┤╨╗╤П Hyprland
+
+![screenshot1](https://github.com/user-attachments/assets/b98cdf7c-83b0-4c12-9da1-ada9e1543178)
+![250318_10h19m33s_screenshot](https://github.com/user-attachments/assets/3ef014e4-4613-4e28-b186-71ce262db404)
+
+
+https://github.com/user-attachments/assets/50d26918-ac74-4b3b-b384-9dd98c62a799
+
+
+
+## ╨г╤Б╤В╨░╨╜╨╛╨▓╨║╨░
+
+### ╨Ч╨░╨▓╨╕╤Б╨╕╨╝╨╛╤Б╤В╨╕
+
+- `go` (make)
+- `gtk3`
+- `gtk-layer-shell`
+
+### ╨г╤Б╤В╨░╨╜╨╛╨▓╨║╨░
+
+```bash
+git clone https://github.com/lotos-linux/hypr-dock.git
+cd hypr-dock
+make get
+make build
+make install
+```
+
+## ╨Ч╨░╨┐╤Г╤Б╨║
+
+### ╨Я╨░╤А╨░╨╝╨╡╤В╤А╤Л ╨╖╨░╨┐╤Г╤Б╨║╨░:
+
+```text
+  -config string
+    	config file (default "~/.config/hypr-dock/config.jsonc")
+  -theme string
+    	theme (default "lotos")
+  -help
+```
+#### ╨Т╤Б╨╡ ╨┐╨░╤А╨░╨╝╨╡╤В╤А╤Л ╤П╨▓╨╗╤П╤О╤В╤Б╤П ╨╜╨╡╨╛╨▒╤П╨╖╨░╤В╨╡╨╗╤М╨╜╤Л╨╝╨╕.
+
+╨Ъ╨╛╨╜╤Д╨╕╨│╤Г╤А╨░╤Ж╨╕╤П ╨╕ ╤В╨╡╨╝╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤П ╤Б╤В╨░╨▓╤П╤В╤М╤Б╤П ╨▓ `~/.config/hypr-dock`
+### ╨Ф╨╛╨▒╨░╨▓╤М╤В╨╡ ╨╖╨░╨┐╤Г╤Б╨║ ╨▓ `hyprland.conf`:
+
+```text
+exec-once = hypr-dock
+bind = Super, D, exec, hypr-dock
+```
+
+#### ╨Ф╨╛╨║ ╨┐╨╛╨┤╨┤╨╡╤А╨╢╨╕╨▓╨░╨╡╤В ╤В╨╛╨╗╤М╨║╨╛ ╨╛╨┤╨╕╨╜ ╨╖╨░╨┐╤Г╤Й╨╡╨╜╨╜╤Л╨╣ ╤Н╨║╨╖╨╡╨╝╨┐╨╗╤П╤А, ╤В╨░╨║ ╤З╤В╨╛ ╨┐╨╛╨▓╤В╨╛╤А╨╜╤Л╨╣ ╨╖╨░╨┐╤Г╤Б╨║ ╨╖╨░╨║╤А╨╛╨╡╤В ╨┐╤А╨╡╨┤╤Л╨┤╤Г╤О╤Й╨╕╨╣.
+
+## ╨Э╨░╤Б╤В╤А╨╛╨╣╨║╨░
+
+### ╨Т `config.jsonc` ╨┤╨╛╤Б╤В╤Г╨┐╨╜╤Л ╤В╨░╨║╨╕╨╡ ╨┐╨░╤А╨░╨╝╨╡╤В╤А╤Л
+
+```jsonc
+{
+    "CurrentTheme": "lotos",
+
+    // Icon size (px) (default 23)
+    "IconSize": 23,
+
+    // Window overlay layer height (auto, background, bottom, top, overlay) (default "auto")
+    "Layer": "auto",
+
+    // Window position on screen (top, bottom, left, right) (default "bottom")
+    "Position": "bottom",
+
+    // Use system gap (true, false) (default "true")
+    "SystemGapUsed": "true",
+
+    // Indent from the edge of the screen (px) (default 8)
+    "Margin": 8
+}
+```
+#### ╨Х╤Б╨╗╨╕ ╨┐╨░╤А╨░╨╝╨╡╤В╤А ╨╜╨╡ ╤Г╨║╨░╨╖╨░╨╜ ╨╖╨╜╨░╤З╨╡╨╜╨╕╨╡ ╨▒╤Г╨┤╨╡╤В ╨▓╤Л╤Б╤В╨░╨▓╨╗╨╡╨╜╨╛ ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О
+## ╨а╨░╨╖╨▒╨╡╤А╨╡╨╝ ╨╜╨╡╨╛╤З╨╡╨▓╨╕╨┤╨╜╤Л╨╡ ╨┐╨░╤А╨░╨╝╨╡╤В╤А╤Л
+### Layer
+- ╨Я╤А╨╕ `"Layer": "auto"` ╤Б╨╗╨╛╨╣ ╨┤╨╛╨║╨░ ╨╜╨░╤Е╨╛╨┤╨╕╤В╤М╤Б╤П ╨┐╨╛╨┤ ╨▓╤Б╨╡╨╝╨╕ ╨╛╨║╨╜╨░╨╝╨╕, ╨╜╨╛ ╨╡╤Б╨╗╨╕ ╤Г╨▓╨╡╤Б╤В╨╕ ╨║╤Г╤А╤Б╨╛╤А ╨╝╤Л╤И╨╕ ╨║ ╨║╤А╨░╤О ╤Н╨║╤А╨░╨╜╨░ - ╨┤╨╛╨║ ╨┐╨╛╨┤╨╜╨╕╨╝╨░╨╡╤В╤Б╤П ╨╜╨░╨┤ ╨╜╨╕╨╝╨╕
+### SystemGapUsed
+- ╨Я╤А╨╕ `"SystemGapUsed": "true"` ╨┤╨╛╨║ ╨▒╤Г╨┤╨╡╤В ╨╖╨░╨┤╨░╨▓╨░╤В╤М ╨┤╨╗╤П ╤Б╨╡╨▒╤П ╨╛╤В╤Б╤В╤Г╨┐ ╨╛╤В ╨║╤А╨░╤П ╤Н╨║╤А╨░╨╜╨░ ╨▒╨╡╤А╤П ╨╖╨╜╨░╤З╨╡╨╜╨╕╨╡ ╨╕╨╖ ╨║╨╛╨╜╤Д╨╕╨│╤Г╤А╨░╤Ж╨╕╨╕ `hyprland`, ╨░ ╨║╨╛╨╜╨║╤А╨╡╤В╨╜╨╛ ╨╖╨╜╨░╤З╨╡╨╜╨╕╤П `general:gaps_out`, ╨┐╤А╨╕ ╤Н╤В╨╛╨╝ ╨┤╨╛╨║ ╨┤╨╕╨╜╨░╨╝╨╕╤З╨╡╤Б╨║╨╕ ╨▒╤Г╨┤╨╡╤В ╨┐╨╛╨┤╤Е╨▓╨░╤В╤Л╨▓╨░╤В╤М ╨╕╨╖╨╝╨╡╨╜╨╡╨╜╨╕╨╡ ╨║╨╛╨╜╤Д╨╕╨│╤Г╤А╨░╤Ж╨╕╨╕ `hyprland`
+- ╨Я╤А╨╕ `"SystemGapUsed": "false"` ╨╛╤В╤Б╤В╤Г╨┐ ╨╛╤В ╨║╤А╨░╤П ╤Н╨║╤А╨░╨╜╨░ ╨▒╤Г╨┤╨╡╤В ╨╖╨░╨┤╨░╨▓╨░╤В╤М╤Б╤П ╨┐╨░╤А╨░╨╝╨╡╤В╤А╨╛╨╝ `Margin`
+
+### ╨в╨░╨║╨╢╨╡ ╨╡╤Б╤В╤М ╤Д╨░╨╣╨╗ `pinned.json` ╤Б ╨╖╨░╨║╤А╨╡╨┐╨╗╨╡╨╜╨╜╤Л╨╝╨╕ ╨┐╤А╨╕╨╗╨╛╨╢╨╡╨╜╨╕╤П╨╝╨╕
+#### ╨Э╨░╨┐╤А╨╕╨╝╨╡╤А
+```json
+{
+  "Pinned": [
+    "firefox",
+    "org.telegram.desktop",
+    "code-oss",
+    "kitty"
+  ]
+}
+```
+╨Т╤Л ╨╝╨╛╨╢╨╡╤В╨╡ ╨╝╨╡╨╜╤П╤В╤М ╨╡╨│╨╛ ╨▓ ╤А╤Г╤З╨╜╤Г╤О. ╨Э╨╛ ╨╖╨░╤З╨╡╨╝? ┬п\_(уГД)_/┬п
+
+## ╨в╨╡╨╝╤Л
+
+#### ╨в╨╡╨╝╤Л ╨╜╨░╤Е╨╛╨┤╤П╤В╤М╤Б╤П ╨▓ ╨┐╨░╨┐╨║╨╡ `~/.config/hypr-dock/themes/`
+
+### ╨в╨╡╨╝╨░ ╤Б╨╛╤Б╤В╨╛╨╕╤В ╨╕╨╖
+- `[╨╜╨░╨╖╨▓╨░╨╜╨╕╨╡_╤В╨╡╨╝╤Л].jsonc` ╨╜╨░╨┐╤А╨╕╨╝╨╡╤А `lotos.jsonc`
+- `style.css`
+- ╨Я╨░╨┐╨║╨░ ╤Б `svg` ╤Д╨░╨╣╨╗╨░╨╝╨╕ ╨┤╨╗╤П ╨╕╨╜╨┤╨╕╨║╨░╤Ж╨╕╨╕ ╨║╨╛╨╗╨╕╤З╨╡╤Б╤В╨▓╨░ ╨╖╨░╨┐╤Г╤Й╨╡╨╜╨╜╤Л╤Е ╨┐╤А╨╕╨╗╨╛╨╢╨╡╨╜╨╕╤П
+
+### ╨Т ╨║╨╛╨╜╤Д╨╕╨│╨╡ ╤В╨╡╨╝╤Л ╨▓╤Б╨╡╨│╨╛ ╨┤╨▓╨░ ╨┐╨░╤А╨░╨╝╨╡╤В╤А╨░
+```jsonc
+{
+    // Blur window ("on", "off") (default "on")
+    "Blur": "on",
+
+    // Distance between elements (px) (default 8)
+    "Spacing": 9
+}
+```
+#### ╨д╨░╨╣╨╗ `style.css` ╨║╤А╤Г╤В╨╕╤В╨╡ ╨║╨░╨║ ╤Е╨╛╤В╨╕╤В╨╡ 
+
+## ╨Ш╤Б╨┐╨╛╨╗╤М╨╖╨╛╨▓╨░╨╜╨╜╤Л╨╡ ╨▒╨╕╨▒╨╗╨╕╨╛╤В╨║╨╕
+- [github.com/akshaybharambe14/go-jsonc](https://github.com/akshaybharambe14/go-jsonc) v1.0.0
+- [github.com/allan-simon/go-singleinstance](https://github.com/allan-simon/go-singleinstance) v0.0.0-20210120080615-d0997106ab37
+- [github.com/dlasky/gotk3-layershell](https://github.com/dlasky/gotk3-layershell) v0.0.0-20240515133811-5c5115f0d774
+- [github.com/goccy/go-json](https://github.com/goccy/go-json) v0.10.3
+- [github.com/gotk3/gotk3](https://github.com/gotk3/gotk3) v0.6.3```
+
+## ./.gitignore
+```gitignore
+configs/pinned.json
+project_structure.md```
+
+## ./main/main.go
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"syscall"
+
+	"github.com/allan-simon/go-singleinstance"
+	"github.com/gotk3/gotk3/gtk"
+
+	"hypr-dock/internal/app"
+	"hypr-dock/internal/hypr/hyprEvents"
+	"hypr-dock/internal/layering"
+	"hypr-dock/internal/pkg/signals"
+	"hypr-dock/internal/pkg/utils"
+	"hypr-dock/internal/settings"
+	"hypr-dock/internal/state"
+)
+
+func main() {
+	signals.Handler()
+
+	lockFilePath := fmt.Sprintf("%s/hypr-dock-%s.lock", utils.TempDir(), os.Getenv("USER"))
+	lockFile, err := singleinstance.CreateLockFile(lockFilePath)
+	if err != nil {
+		file, err := utils.LoadTextFile(lockFilePath)
+		if err == nil {
+			pidStr := file[0]
+			pidInt, _ := strconv.Atoi(pidStr)
+			syscall.Kill(pidInt, syscall.SIGUSR1)
+		}
+		os.Exit(0)
+	}
+	defer lockFile.Close()
+
+	// window build
+	settings.Init()
+	gtk.Init(nil)
+
+	appState := state.New()
+
+	window, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		log.Fatal("Unable to create window:", err)
+	}
+	appState.SetWindow(window)
+
+	window.SetTitle("hypr-dock")
+
+	orientation, edge := layering.SetWindowProperty(window, appState)
+	appState.SetOrientation(orientation)
+
+	err = utils.AddCssProvider(settings.CurrentThemeStylePath)
+	if err != nil {
+		log.Println("CSS file not found, the default GTK theme is running!\n", err)
+	}
+
+	app := app.BuildApp(orientation, appState)
+
+	window.Add(app)
+	window.Connect("destroy", func() { gtk.MainQuit() })
+	window.ShowAll()
+
+	// post
+	if settings.Get().Layer == "auto" {
+		layering.InitDetectArea(edge, appState)
+	}
+
+	hyprEvents.Init(appState)
+
+	// end
+	gtk.Main()
+}
+```
+
+## ./internal/hypr/hyprEvents/events.go
+```go
+package hyprEvents
+
+import (
+	"fmt"
+	"log"
+	"strings"
+
+	"github.com/gotk3/gotk3/glib"
+
+	"hypr-dock/internal/app"
+	"hypr-dock/internal/state"
+	"hypr-dock/pkg/ipc"
+)
+
+func Init(appState *state.State) {
+	ipc.AddEventListener("windowtitlev2", func(event string) {
+		windowTitleHandler(event, appState)
+	}, true)
+
+	ipc.AddEventListener("openwindow", func(event string) {
+		openwindowHandler(event, appState)
+	}, true)
+
+	ipc.AddEventListener("closewindow", func(event string) {
+		closewindowHandler(event, appState)
+	}, true)
+
+	ipc.AddEventListener("activespecial", func(event string) {
+		activatespecialHandler(event, appState)
+	}, true)
+
+	go ipc.InitHyprEvents()
+}
+
+func windowTitleHandler(event string, appState *state.State) {
+	data := eventHandler(event, 2)
+	address := "0x" + strings.TrimSpace(data[0])
+	go app.ChangeWindowTitle(address, data[1], appState)
+}
+
+func activatespecialHandler(event string, appState *state.State) {
+	data := eventHandler(event, 2)
+	log.Printf("Received activespecial event: %v", data)
+
+	if data[0] == "special:special" {
+		log.Println("Special workspace activated")
+		appState.SetSpecial(true)
+	} else {
+		log.Println("Special workspace deactivated")
+		appState.SetSpecial(false)
+	}
+}
+
+func openwindowHandler(event string, appState *state.State) {
+	data := eventHandler(event, 4)
+	address := "0x" + strings.TrimSpace(data[0])
+	windowClient, err := ipc.SearchClientByAddress(address)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		glib.IdleAdd(func() {
+			app.InitNewItemInIPC(windowClient, appState)
+		})
+	}
+}
+
+func closewindowHandler(event string, appState *state.State) {
+	data := eventHandler(event, 1)
+	address := "0x" + strings.TrimSpace(data[0])
+	glib.IdleAdd(func() {
+		app.RemoveApp(address, appState)
+	})
+}
+
+func eventHandler(event string, n int) []string {
+	parts := strings.SplitN(event, ">>", 2)
+	dataClast := strings.TrimSpace(parts[1])
+	dataParts := strings.SplitN(dataClast, ",", n)
+
+	for i := range dataParts {
+		dataParts[i] = strings.TrimSpace(dataParts[i])
+	}
+
+	return dataParts
+}
+```
+
+## ./internal/hypr/hyprOpt/hypr.option.go
+```go
+package hyprOpt
+
+import (
+	"errors"
+	"fmt"
+	"hypr-dock/pkg/ipc"
+	"log"
+	"math"
+	"strconv"
+	"strings"
+)
+
+type gapsOut struct {
+	Option string `json:"option"`
+	Custom string `json:"custom"`
+	Set    bool   `json:"set"`
+}
+
+func GetGap() ([]int, error) {
+	option := "general:gaps_out"
+
+	gapsVal := gapsOut{}
+	err := ipc.GetOption(option, &gapsVal)
+	if err != nil {
+		err = fmt.Errorf("failed to get option \"%s\": %v", option, err)
+		log.Println(err)
+		return nil, err
+	}
+
+	if !gapsVal.Set {
+		errorText := fmt.Sprintf("value \"%s\" is unset", option)
+		log.Println(errorText)
+		return nil, errors.New(errorText)
+	}
+
+	if gapsVal.Custom == "" {
+		errorText := fmt.Sprintf("value \"%s\" is empty", option)
+		log.Println(errorText)
+		return nil, errors.New(errorText)
+	}
+
+	outValues := []int{}
+	gapsVal.Custom = strings.TrimSpace(gapsVal.Custom)
+	values := strings.Split(gapsVal.Custom, " ")
+	for _, value := range values {
+		intValue, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			err = fmt.Errorf("failed to convert \"%s\" to int: %v", value, err)
+			log.Println(err)
+			return nil, err
+		}
+
+		outValues = append(outValues, int(math.Round(math.Max(intValue, 0))))
+	}
+
+	return outValues, nil
+}
+
+func GapChangeEvent(handler func(gap int)) {
+	var preGap int
+	ipc.AddEventListener("configreloaded", func(e string) {
+		gaps, err := GetGap()
+		if err != nil {
+			log.Println("Reading gap error", err)
+			return
+		}
+
+		if gaps[0] == preGap {
+			return
+		}
+
+		preGap = gaps[0]
+		handler(gaps[0])
+	}, true)
+}
+```
+
+## ./internal/layering/layering.go
+```go
+package layering
+
+import (
+	"hypr-dock/internal/settings"
+	"hypr-dock/internal/state"
+	"log"
+	"time"
+
+	"github.com/dlasky/gotk3-layershell/layershell"
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/gtk"
+)
+
+func SetWindowProperty(window *gtk.Window, appState *state.State) (gtk.Orientation, layershell.LayerShellEdgeFlags) {
+	oreintation := gtk.ORIENTATION_HORIZONTAL
+	layer := layershell.LAYER_SHELL_LAYER_BOTTOM
+	edge := layershell.LAYER_SHELL_EDGE_BOTTOM
+
+	switch settings.Get().Position {
+	case "left":
+		edge = layershell.LAYER_SHELL_EDGE_LEFT
+		oreintation = gtk.ORIENTATION_VERTICAL
+	case "bottom":
+		edge = layershell.LAYER_SHELL_EDGE_BOTTOM
+	case "right":
+		edge = layershell.LAYER_SHELL_EDGE_RIGHT
+		oreintation = gtk.ORIENTATION_VERTICAL
+	case "top":
+		edge = layershell.LAYER_SHELL_EDGE_TOP
+	}
+
+	layershell.InitForWindow(window)
+	layershell.SetNamespace(window, "hypr-dock")
+	layershell.SetAnchor(window, edge, true)
+	layershell.SetMargin(window, edge, 0)
+
+	if settings.Get().Layer == "auto" {
+		SetLayer("bottom", appState)
+		AutoLayer(window, appState)
+		return oreintation, edge
+	}
+
+	switch settings.Get().Layer {
+	case "background":
+		layer = layershell.LAYER_SHELL_LAYER_BACKGROUND
+	case "bottom":
+		layer = layershell.LAYER_SHELL_LAYER_BOTTOM
+	case "top":
+		layer = layershell.LAYER_SHELL_LAYER_TOP
+	case "overlay":
+		layer = layershell.LAYER_SHELL_LAYER_OVERLAY
+	}
+
+	layershell.SetLayer(window, layer)
+	return oreintation, edge
+}
+
+func InitDetectArea(edge layershell.LayerShellEdgeFlags, appState *state.State) {
+	detectArea, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		log.Fatal("InitDetectArea(), gtk.WindowNew() | ", err)
+	}
+	detectArea.SetName("detect")
+
+	layershell.InitForWindow(detectArea)
+	layershell.SetNamespace(detectArea, "dock-detect")
+	layershell.SetAnchor(detectArea, edge, true)
+	layershell.SetMargin(detectArea, edge, 0)
+	layershell.SetLayer(detectArea, layershell.LAYER_SHELL_LAYER_TOP)
+
+	long := settings.Get().IconSize * len(appState.GetAddedApps().List) * 2
+
+	switch appState.GetOrientation() {
+	case gtk.ORIENTATION_HORIZONTAL:
+		detectArea.SetSizeRequest(long, 1)
+	case gtk.ORIENTATION_VERTICAL:
+		detectArea.SetSizeRequest(1, long)
+	}
+
+	detectArea.Connect("enter-notify-event", func(window *gtk.Window, e *gdk.Event) {
+		appState.SetPreventHide(false)
+
+		go func() {
+			SetLayer("top", appState)
+		}()
+	})
+
+	detectArea.ShowAll()
+	appState.SetDetectArea(detectArea)
+}
+
+func AutoLayer(window *gtk.Window, appState *state.State) {
+	window.Connect("enter-notify-event", func(window *gtk.Window, e *gdk.Event) {
+		event := gdk.EventCrossingNewFromEvent(e)
+		isInWindow := event.Detail() == 3 || event.Detail() == 4
+
+		if isInWindow {
+			appState.SetPreventHide(true)
+		}
+
+		if isInWindow && !appState.GetSpecial() {
+			go func() {
+				SetLayer("top", appState)
+				appState.SetPreventHide(true)
+			}()
+		}
+	})
+
+	window.Connect("leave-notify-event", func(window *gtk.Window, e *gdk.Event) {
+		event := gdk.EventCrossingNewFromEvent(e)
+		isInWindow := event.Detail() == 3 || event.Detail() == 4
+
+		if isInWindow {
+			appState.SetPreventHide(false)
+		}
+
+		if isInWindow && !appState.GetPreventHide() {
+			go func() {
+				time.Sleep(time.Second / 3)
+				if !appState.GetPreventHide() {
+					SetLayer("bottom", appState)
+					appState.SetPreventHide(false)
+				}
+			}()
+		}
+	})
+}
+
+func SetLayer(layer string, appState *state.State) {
+	window := appState.GetWindow()
+	switch layer {
+	case "top":
+		layershell.SetLayer(window, layershell.LAYER_SHELL_LAYER_TOP)
+	case "bottom":
+		layershell.SetLayer(window, layershell.LAYER_SHELL_LAYER_BOTTOM)
+	}
+}
+```
+
+## ./internal/pkg/desktop/desktop.go
+```go
+package desktop
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
+	"hypr-dock/internal/pkg/utils"
+)
+
+type Desktop struct {
+	Name string
+	Icon string
+	Exec string
+}
+
+var desktopDirs = GetAppDirs()
+
+func New(className string) *Desktop {
+	allData, err := utils.LoadTextFile(SearchDesktopFile(className))
+	if err != nil {
+		log.Println(err)
+		return &Desktop{
+			Name: "Untitle",
+			Icon: "",
+			Exec: "",
+		}
+	}
+
+	return &Desktop{
+		Name: GetDesktopOption(allData, "Name"),
+		Icon: GetDesktopOption(allData, "Icon"),
+		Exec: GetDesktopOption(allData, "Exec"),
+	}
+}
+
+func SearchDesktopFile(className string) string {
+	for _, appDir := range desktopDirs {
+		desktopFile := className + ".desktop"
+		_, err := os.Stat(filepath.Join(appDir, desktopFile))
+		if err == nil {
+			return filepath.Join(appDir, desktopFile)
+		}
+
+		// If file non found
+		files, _ := os.ReadDir(appDir)
+		for _, file := range files {
+			fileName := file.Name()
+
+			// "krita" > "org.kde.krita.desktop" / "lutris" > "net.lutris.Lutris.desktop"
+			if strings.Count(fileName, ".") > 1 && strings.Contains(fileName, className) {
+				return filepath.Join(appDir, fileName)
+			}
+			// "VirtualBox Manager" > "virtualbox.desktop"
+			if fileName == strings.Split(strings.ToLower(className), " ")[0]+".desktop" {
+				return filepath.Join(appDir, fileName)
+			}
+		}
+	}
+
+	return ""
+}
+
+func GetDesktopOption(allData []string, option string) string {
+	for lineIndex := range len(allData) {
+		line := allData[lineIndex]
+		if strings.HasPrefix(line, option+"=") {
+			optionValue := strings.Split(line, "=")[1]
+			return optionValue
+		}
+	}
+	return ""
+}
+
+func GetAppDirs() []string {
+	var dirs []string
+	xdgDataDirs := ""
+
+	home := os.Getenv("HOME")
+	xdgDataHome := os.Getenv("XDG_DATA_HOME")
+	if os.Getenv("XDG_DATA_DIRS") != "" {
+		xdgDataDirs = os.Getenv("XDG_DATA_DIRS")
+	} else {
+		xdgDataDirs = "/usr/local/share/:/usr/share/"
+	}
+	if xdgDataHome != "" {
+		dirs = append(dirs, filepath.Join(xdgDataHome, "applications"))
+	} else if home != "" {
+		dirs = append(dirs, filepath.Join(home, ".local/share/applications"))
+	}
+	for _, d := range strings.Split(xdgDataDirs, ":") {
+		dirs = append(dirs, filepath.Join(d, "applications"))
+	}
+	flatpakDirs := []string{filepath.Join(home, ".local/share/flatpak/exports/share/applications"),
+		"/var/lib/flatpak/exports/share/applications"}
+
+	for _, d := range flatpakDirs {
+		if !slices.Contains(dirs, d) {
+			dirs = append(dirs, d)
+		}
+	}
+	return dirs
+}
+```
+
+## ./internal/pkg/flags/flags.go
+```go
+package flags
+
+import "flag"
+
+type Flags struct {
+	Config string
+	Theme  string
+}
+
+func Get(defaultTheme string) Flags {
+	list := Flags{
+		Config: *flag.String("config", "~/.config/hypr-dock", "config file"),
+		Theme:  *flag.String("theme", defaultTheme, "theme dir"),
+	}
+	flag.Parse()
+	return list
+}
+```
+
+## ./internal/pkg/signals/signals.go
+```go
+package signals
+
+import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/gotk3/gotk3/gtk"
+)
+
+func Handler() {
+	signalChanel := make(chan os.Signal, 1)
+	signal.Notify(signalChanel, syscall.SIGTERM, syscall.SIGUSR1)
+
+	go func() {
+		for {
+			signalU := <-signalChanel
+			switch signalU {
+			case syscall.SIGTERM:
+				log.Println("Exit... (SIGTERM)")
+				gtk.MainQuit()
+			case syscall.SIGUSR1:
+				log.Println("Exit... (SIGUSR1)")
+				gtk.MainQuit()
+			default:
+				log.Println("Unknow signal")
+			}
+		}
+	}()
+}
+```
+
+## ./internal/pkg/utils/os.utils.go
+```go
+package utils
+
+import (
+	"errors"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
+)
+
+func Launch(command string) {
+	if strings.Contains(command, "\"") {
+		command = strings.ReplaceAll(command, "\"", "")
+	}
+
+	badArg := strings.Index(command, "%")
+	if badArg != -1 {
+		command = command[:badArg-1]
+	}
+
+	elements := strings.Split(command, " ")
+
+	// find prepended env variables, if any
+	envVarsNum := strings.Count(command, "=")
+	var envVars []string
+
+	cmdIdx := -1
+
+	if envVarsNum > 0 {
+		for idx, item := range elements {
+			if strings.Contains(item, "=") {
+				envVars = append(envVars, item)
+			} else if !strings.HasPrefix(item, "-") && cmdIdx == -1 {
+				cmdIdx = idx
+			}
+		}
+	}
+	if cmdIdx == -1 {
+		cmdIdx = 0
+	}
+	var args []string
+	for _, arg := range elements[1+cmdIdx:] {
+		if !strings.Contains(arg, "=") {
+			args = append(args, arg)
+		}
+	}
+
+	cmd := exec.Command(elements[cmdIdx], elements[1+cmdIdx:]...)
+
+	// set env variables
+	if len(envVars) > 0 {
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, envVars...)
+	}
+
+	log.Printf("env vars: %s; command: '%s'; args: %s\n", envVars, elements[cmdIdx], args)
+
+	if err := cmd.Start(); err != nil {
+		log.Println("Unable to launch command!", err.Error())
+	}
+}
+
+func LoadTextFile(path string) ([]string, error) {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(bytes), "\n")
+	var output []string
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			output = append(output, line)
+		}
+
+	}
+	return output, nil
+}
+
+func TempDir() string {
+	if os.Getenv("TMPDIR") != "" {
+		return os.Getenv("TMPDIR")
+	} else if os.Getenv("TEMP") != "" {
+		return os.Getenv("TEMP")
+	} else if os.Getenv("TMP") != "" {
+		return os.Getenv("TMP")
+	}
+	return "/tmp"
+}
+
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return !errors.Is(err, os.ErrNotExist)
+}
+```
+
+## ./internal/pkg/utils/common.utils.go
+```go
+package utils
+
+func AddToSlice(slice *[]string, value string) {
+	*slice = append(*slice, value)
+}
+
+func RemoveFromSliceByValue(slice *[]string, value string) {
+	index := -1
+	for i, v := range *slice {
+		if v == value {
+			index = i
+			break
+		}
+	}
+
+	if index != -1 {
+		*slice = append((*slice)[:index], (*slice)[index+1:]...)
+	}
+}
+
+func RemoveFromSlice(slice []map[string]string, s int) []map[string]string {
+	return append(slice[:s], slice[s+1:]...)
+}
+```
+
+## ./internal/pkg/utils/gtk.utils.go
+```go
+package utils
+
+import (
+	"log"
+	"math"
+	"strings"
+
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/gtk"
+	"github.com/pkg/errors"
+)
+
+func CreateImageWidthScale(source string, size int, scaleFactor float64) (*gtk.Image, error) {
+	scaleSize := int(math.Round(float64(size) * math.Max(scaleFactor, 0)))
+
+	return CreateImage(source, scaleSize)
+}
+
+func CreateImage(source string, size int) (*gtk.Image, error) {
+	// Create image in file
+	if strings.Contains(source, "/") {
+		pixbuf, err := gdk.PixbufNewFromFileAtSize(source, size, size)
+		if err != nil {
+			log.Println(err)
+			return CreateImage("image-missing", size)
+		}
+
+		return CreateImageFromPixbuf(pixbuf), nil
+	}
+
+	// Create image in icon name
+	iconTheme, err := gtk.IconThemeGetDefault()
+	if err != nil {
+		log.Println("Unable to icon theme:", err)
+		return CreateImage("image-missing", size)
+	}
+
+	pixbuf, err := iconTheme.LoadIcon(source, size, gtk.ICON_LOOKUP_FORCE_SIZE)
+	if err != nil {
+		log.Println(source, err)
+		return CreateImage("image-missing", size)
+	}
+
+	return CreateImageFromPixbuf(pixbuf), nil
+}
+
+func CreateImageFromPixbuf(pixbuf *gdk.Pixbuf) *gtk.Image {
+	image, err := gtk.ImageNewFromPixbuf(pixbuf)
+	if err != nil {
+		log.Println("Error creating image from pixbuf:", err)
+		return nil
+	}
+	return image
+}
+
+func AddCssProvider(cssFile string) error {
+	cssProvider, err := gtk.CssProviderNew()
+	if err != nil {
+		log.Printf("Failed to create CSS provider: %v", err)
+		return errors.Wrap(err, "failed to create CSS provider")
+	}
+
+	if err := cssProvider.LoadFromPath(cssFile); err != nil {
+		log.Printf("Failed to load CSS from %q: %v", cssFile, err)
+		return errors.Wrapf(err, "failed to load CSS from %q", cssFile)
+	}
+
+	screen, err := gdk.ScreenGetDefault()
+	if err != nil {
+		log.Printf("Failed to get default screen: %v", err)
+		return errors.Wrap(err, "failed to get default screen")
+	}
+
+	gtk.AddProviderForScreen(
+		screen, cssProvider,
+		gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+	)
+
+	return nil
+}
+
+func RemoveStyleProvider(widget *gtk.Box, provider *gtk.CssProvider) {
+	if provider == nil {
+		log.Println("provider is nil")
+		return
+	}
+
+	styleContext, err := widget.GetStyleContext()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	styleContext.RemoveProvider(provider)
+}
+```
+
+## ./internal/pkg/cfg/cfg.go
+```go
+package cfg
+
+import (
+	"hypr-dock/internal/pkg/utils"
+	"io"
+	"log"
+	"os"
+	"slices"
+
+	"github.com/akshaybharambe14/go-jsonc"
+	"github.com/goccy/go-json"
+	"github.com/pkg/errors"
+	// "github.com/tidwall/sjson"
+)
+
+type Config struct {
+	CurrentTheme  string
+	IconSize      int
+	Layer         string
+	Position      string
+	Blur          string
+	Spacing       int
+	SystemGapUsed string
+	Margin        int
+}
+
+type ThemeConfig struct {
+	Blur    string
+	Spacing int
+}
+
+type ItemList struct {
+	Pinned []string
+}
+
+func GetDefaultConfig() Config {
+	return Config{
+		CurrentTheme:  "lotos",
+		IconSize:      21,
+		Layer:         "auto",
+		Position:      "bottom",
+		Blur:          "true",
+		Spacing:       8,
+		SystemGapUsed: "true",
+		Margin:        8,
+	}
+}
+
+func ReadConfig(jsoncFile string) Config {
+	// Read jsonc
+	config := Config{}
+	err := ReadJsonc(jsoncFile, &config)
+	if err != nil {
+		log.Println(err)
+		log.Println("Load default config")
+		return GetDefaultConfig()
+	}
+
+	// Set default values тАЛтАЛif not specified
+	if config.CurrentTheme == "" {
+		config.CurrentTheme = GetDefaultConfig().CurrentTheme
+		log.Println("The theme is not set, the default theme is currently used - \"lotos\"")
+	}
+
+	correctLayers := []string{"auto", "background", "bottom", "top", "overlay"}
+	if !slices.Contains(correctLayers, config.Layer) {
+		log.Println("Layer", "\""+config.Layer+"\"", "is incorrect or empty. Default layer set")
+		config.Layer = GetDefaultConfig().CurrentTheme
+	}
+
+	correctPositions := []string{"left", "right", "top", "bottom"}
+	if !slices.Contains(correctPositions, config.Position) {
+		log.Println("Position", "\""+config.Layer+"\"", "is incorrect or empty. Default position set")
+		config.Position = GetDefaultConfig().Position
+	}
+
+	correctBlurModes := []string{"true", "false"}
+	if !slices.Contains(correctBlurModes, config.Blur) {
+		config.Blur = GetDefaultConfig().Blur
+	}
+
+	correctSystemGapUsed := []string{"true", "false"}
+	if !slices.Contains(correctSystemGapUsed, config.SystemGapUsed) {
+		log.Println("SystemGapUsed", "\""+config.SystemGapUsed+"\"", "is incorrect or empty. Defailt value set")
+		config.SystemGapUsed = GetDefaultConfig().SystemGapUsed
+	}
+
+	if config.Spacing < 1 {
+		config.Spacing = GetDefaultConfig().Spacing
+	}
+
+	if config.IconSize < 1 {
+		config.IconSize = GetDefaultConfig().IconSize
+	}
+
+	return config
+}
+
+func ReadTheme(jsoncFile string, config Config) *ThemeConfig {
+	// Read jsonc
+	themeConfig := ThemeConfig{}
+	err := ReadJsonc(jsoncFile, &themeConfig)
+	if err != nil {
+		log.Println(err)
+		log.Println("Load default config")
+		return nil
+	}
+
+	// Set default values тАЛтАЛif not specified
+	correctBlurModes := []string{"true", "false"}
+	if !slices.Contains(correctBlurModes, themeConfig.Blur) {
+		log.Println("Blur", "\""+themeConfig.Blur+"\"", "is incorrect or empty. Default blur set")
+		themeConfig.Blur = config.Blur
+	}
+
+	if themeConfig.Spacing < 0 {
+		themeConfig.Spacing = config.Spacing
+	}
+
+	return &themeConfig
+}
+
+func ReadItemList(jsonFile string) []string {
+	itemList := ItemList{}
+
+	if !utils.FileExists(jsonFile) {
+		itemList.Pinned = CreateEmptyPinnedFile(jsonFile)
+		return itemList.Pinned
+	}
+
+	err := ReadJson(jsonFile, &itemList)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return itemList.Pinned
+}
+
+func ReadJsonc(jsoncFile string, v interface{}) error {
+	file, err := os.Open(jsoncFile)
+	if err != nil {
+		return errors.Wrapf(err, "file %q not found", jsoncFile)
+	}
+	defer file.Close()
+
+	decoder := jsonc.NewDecoder(file)
+	res, err := io.ReadAll(decoder)
+	if err != nil {
+		return errors.Wrapf(err, "file %q. io.ReadAll error", jsoncFile)
+	}
+
+	if err = json.Unmarshal(res, &v); err != nil {
+		return errors.Wrapf(err, "file %q has a syntax error", jsoncFile)
+	}
+
+	return nil
+}
+
+func ChangeJsonPinnedApps(apps []string, jsonFile string) error {
+	itemList := ItemList{
+		Pinned: apps,
+	}
+
+	if err := WriteItemList(jsonFile, itemList); err != nil {
+		log.Println("Error", jsonFile, "writing: ", err)
+		return err
+	}
+
+	return nil
+}
+
+func ReadJson(jsonFile string, v interface{}) error {
+	file, err := os.Open(jsonFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&v); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateEmptyPinnedFile(jsonFile string) []string {
+	initialData := ItemList{
+		Pinned: []string{},
+	}
+
+	if err := WriteItemList(jsonFile, initialData); err != nil {
+		log.Fatalf("Failed to create file %q: %v", jsonFile, err)
+		return nil
+	}
+
+	return initialData.Pinned
+}
+
+func WriteItemList(jsonFile string, data ItemList) error {
+	file, err := os.Create(jsonFile)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create file %q", jsonFile)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	if err := encoder.Encode(data); err != nil {
+		return errors.Wrapf(err, "failed to encode data to file %q", jsonFile)
+	}
+
+	return nil
+}
+```
+
+## ./internal/settings/settings.go
+```go
+package settings
+
+import (
+	"errors"
+	"hypr-dock/internal/pkg/cfg"
+	"hypr-dock/internal/pkg/flags"
+	"hypr-dock/internal/pkg/utils"
+	"hypr-dock/pkg/ipc"
+	"log"
+	"os"
+	"path/filepath"
+)
+
+const RunMode = "normal"
+
+// const RunMode = "dev"
+const DefaultTheme = "lotos"
+
+var ConfigDir string
+var ConfigPath string
+var PinnedPath string
+var ThemesDir string
+var CurrentThemeDir string
+var CurrentThemeConfigPath string
+var CurrentThemeStylePath string
+
+var conf cfg.Config
+var PinnedApps []string
+
+func Get() cfg.Config {
+	return conf
+}
+
+func setConfigDir(mode string) string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal("Home dir: " + err.Error())
+	}
+
+	runModes := map[string]func() string{}
+	runModes["normal"] = func() string {
+		return filepath.Join(homeDir, ".config/hypr-dock")
+	}
+	runModes["dev"] = func() string {
+		return filepath.Join(homeDir, "repos/hypr-dock/configs")
+	}
+
+	return runModes[mode]()
+}
+
+func Init() error {
+	flags := flags.Get(DefaultTheme)
+
+	ConfigDir = setConfigDir(RunMode)
+
+	PinnedPath = filepath.Join(ConfigDir, "pinned.json")
+	PinnedApps = cfg.ReadItemList(PinnedPath)
+	defaultConfigPath := filepath.Join(ConfigDir, "config.jsonc")
+
+	if flags.Config == "~/.config/hypr-dock" {
+		ConfigPath = defaultConfigPath
+	} else {
+		ConfigPath = flags.Config
+	}
+
+	conf = cfg.ReadConfig(ConfigPath)
+
+	ThemesDir = filepath.Join(ConfigDir, "themes")
+	CurrentThemeDir = filepath.Join(ThemesDir, conf.CurrentTheme)
+
+	if !utils.FileExists(CurrentThemeDir) {
+		log.Println("Current theme not found (", conf.CurrentTheme, "). Loading default theme")
+
+		if conf.CurrentTheme == DefaultTheme {
+			log.Println("Default theme not found")
+			return errors.New("default theme not found")
+		}
+
+		conf.CurrentTheme = DefaultTheme
+	}
+
+	CurrentThemeStylePath = filepath.Join(CurrentThemeDir, "style.css")
+	CurrentThemeConfigPath = filepath.Join(CurrentThemeDir, conf.CurrentTheme+".jsonc")
+
+	themeConfig := cfg.ReadTheme(CurrentThemeConfigPath, conf)
+	if themeConfig == nil {
+		log.Println(CurrentThemeConfigPath, "not found. Load default values")
+		return nil
+	}
+
+	conf.Blur = themeConfig.Blur
+	conf.Spacing = themeConfig.Spacing
+
+	if conf.Blur == "true" {
+		enableBlur()
+
+		ipc.AddEventListener("configreloaded", func(event string) {
+			go enableBlur()
+		}, true)
+	}
+
+	return nil
+}
+
+func enableBlur() {
+	ipc.Hyprctl("keyword layerrule blur,hypr-dock")
+	ipc.Hyprctl("keyword layerrule ignorealpha 0.4,hypr-dock")
+}
+```
+
+## ./internal/state/state.go
+```go
+package state
+
+import (
+	"hypr-dock/internal/item"
+	"sync"
+
+	"github.com/gotk3/gotk3/gtk"
+)
+
+type State struct {
+	Window      *gtk.Window
+	DetectArea  *gtk.Window
+	ItemsBox    *gtk.Box
+	Orientation gtk.Orientation
+	PreventHide bool
+	AddedApps   AddedApps
+	Special     bool
+	mu          sync.Mutex
+}
+
+type AddedApps struct {
+	List map[string]*item.Item
+	mu   sync.Mutex
+}
+
+func New() *State {
+	return &State{
+		AddedApps: NewAddedApps(),
+	}
+}
+
+func NewAddedApps() AddedApps {
+	return AddedApps{
+		List: make(map[string]*item.Item),
+	}
+}
+
+func (s *State) GetAddedApps() *AddedApps {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return &s.AddedApps
+}
+
+func (aa *AddedApps) Add(className string, item *item.Item) {
+	aa.mu.Lock()
+	defer aa.mu.Unlock()
+	aa.List[className] = item
+}
+
+func (aa *AddedApps) Remove(className string) {
+	aa.mu.Lock()
+	defer aa.mu.Unlock()
+	delete(aa.List, className)
+}
+
+func (s *State) Update(fn func(*State)) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	fn(s)
+}
+
+func (s *State) SetWindow(window *gtk.Window) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.Window = window
+}
+
+func (s *State) SetDetectArea(window *gtk.Window) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.DetectArea = window
+}
+
+func (s *State) SetItemsBox(box *gtk.Box) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.ItemsBox = box
+}
+
+func (s *State) SetOrientation(orientation gtk.Orientation) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.Orientation = orientation
+}
+
+func (s *State) SetPreventHide(is bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.PreventHide = is
+}
+
+func (s *State) SetSpecial(is bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.Special = is
+}
+
+func (s *State) GetWindow() *gtk.Window {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Window
+}
+
+func (s *State) GetDetectArea() *gtk.Window {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.DetectArea
+}
+
+func (s *State) GetItemsBox() *gtk.Box {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.ItemsBox
+}
+
+func (s *State) GetOrientation() gtk.Orientation {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Orientation
+}
+
+func (s *State) GetPreventHide() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.PreventHide
+}
+
+func (s *State) GetSpecial() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Special
+}
+```
+
+## ./internal/item/popup.go
+```go
+package item
+
+import (
+	"log"
+
+	"github.com/gotk3/gotk3/gtk"
+
+	"hypr-dock/internal/pkg/desktop"
+	"hypr-dock/internal/pkg/utils"
+	"hypr-dock/pkg/ipc"
+)
+
+func (item *Item) WindowsMenu() (*gtk.Menu, error) {
+	menu, err := gtk.MenuNew()
+	if err != nil {
+		log.Println(err)
+	}
+
+	desktopData := desktop.New(item.ClassName)
+
+	AddWindowsItemToMenu(menu, item.Windows, desktopData)
+
+	menu.SetName("windows-menu")
+	menu.ShowAll()
+
+	return menu, nil
+}
+
+func (item *Item) ContextMenu() (*gtk.Menu, error) {
+	menu, err := gtk.MenuNew()
+	if err != nil {
+		log.Println(err)
+	}
+
+	desktopData := desktop.New(item.ClassName)
+
+	AddWindowsItemToMenu(menu, item.Windows, desktopData)
+
+	if item.Instances != 0 {
+		separator, err := gtk.SeparatorMenuItemNew()
+		if err == nil {
+			menu.Append(separator)
+		} else {
+			log.Println(err)
+		}
+	}
+
+	launchMenuItem, err := BuildLaunchMenuItem(item, desktopData.Exec)
+	if err == nil {
+		menu.Append(launchMenuItem)
+	} else {
+		log.Println(err)
+	}
+
+	pinMenuItem, err := BuildPinMenuItem(item)
+	if err == nil {
+		menu.Append(pinMenuItem)
+	} else {
+		log.Println(err)
+	}
+
+	menu.SetName("context-menu")
+	menu.ShowAll()
+
+	return menu, nil
+}
+
+func AddWindowsItemToMenu(menu *gtk.Menu, windows []map[string]string, desktopData *desktop.Desktop) {
+	for _, window := range windows {
+		menuItem, err := BuildContextItem(window["Title"], func() {
+			go ipc.Hyprctl("dispatch focuswindow address:" + window["Address"])
+		}, desktopData.Icon)
+
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		menu.Append(menuItem)
+	}
+}
+
+func BuildLaunchMenuItem(item *Item, exec string) (*gtk.MenuItem, error) {
+	labelText := "New window"
+	if item.Instances == 0 {
+		labelText = "Open"
+	}
+
+	launchMenuItem, err := BuildContextItem(labelText, func() {
+		utils.Launch(exec)
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return launchMenuItem, nil
+}
+
+func BuildPinMenuItem(item *Item) (*gtk.MenuItem, error) {
+	labelText := "Pin"
+	if item.IsPinned() {
+		labelText = "Unpin"
+	}
+
+	menuItem, err := BuildContextItem(labelText, func() {
+		item.TogglePin()
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return menuItem, nil
+}
+
+func BuildContextItem(labelText string, connectFunc func(), iconName ...string) (*gtk.MenuItem, error) {
+	menuItem, err := gtk.MenuItemNew()
+	if err != nil {
+		return nil, err
+	}
+
+	hbox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 6)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(iconName) > 0 {
+		icon, err := utils.CreateImage(iconName[0], 16)
+		if err == nil {
+			hbox.Add(icon)
+		}
+	}
+
+	label, err := gtk.LabelNew(labelText)
+	if err != nil {
+		return nil, err
+	}
+
+	if connectFunc != nil {
+		menuItem.Connect("activate", connectFunc)
+	}
+
+	hbox.Add(label)
+	menuItem.Add(hbox)
+
+	return menuItem, nil
+}
+```
+
+## ./internal/item/item.go
+```go
+package item
+
+import (
+	"log"
+	"path/filepath"
+	"slices"
+
+	"github.com/gotk3/gotk3/gtk"
+
+	"hypr-dock/internal/pkg/cfg"
+	"hypr-dock/internal/pkg/desktop"
+	"hypr-dock/internal/pkg/utils"
+	"hypr-dock/internal/settings"
+	"hypr-dock/pkg/ipc"
+)
+
+type Item struct {
+	Instances      int
+	Windows        []map[string]string
+	DesktopData    *desktop.Desktop
+	ClassName      string
+	Button         *gtk.Button
+	ButtonBox      *gtk.Box
+	IndicatorImage *gtk.Image
+	List           map[string]*Item
+	PinnedList     *[]string
+}
+
+func New(className string) (*Item, error) {
+	config := settings.Get()
+	desktopData := desktop.New(className)
+
+	item, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	button, err := gtk.ButtonNew()
+	if err == nil {
+		image, err := utils.CreateImage(desktopData.Icon, config.IconSize)
+		if err == nil {
+			button.SetImage(image)
+		} else {
+			log.Println(err)
+		}
+
+		button.SetName(className)
+		button.SetTooltipText(desktopData.Name)
+
+		item.Add(button)
+	} else {
+		log.Println(err)
+	}
+
+	indicatorImage, err := GetIndicatorImage(0)
+	if err == nil {
+		item.Add(indicatorImage)
+	} else {
+		log.Println(err)
+	}
+
+	return &Item{
+		IndicatorImage: indicatorImage,
+		Button:         button,
+		ButtonBox:      item,
+		DesktopData:    desktopData,
+		Instances:      0,
+		ClassName:      className,
+		List:           nil,
+		PinnedList:     nil,
+	}, nil
+}
+
+func (item *Item) RemoveLastInstance(windowIndex int) {
+	item.IndicatorImage.Destroy()
+
+	newImage, err := GetIndicatorImage(item.Instances - 1)
+	if err == nil {
+		item.ButtonBox.Add(newImage)
+	}
+
+	item.Instances -= 1
+	item.Windows = utils.RemoveFromSlice(item.Windows, windowIndex)
+	item.IndicatorImage = newImage
+}
+
+func (item *Item) UpdateState(ipcClient ipc.Client) {
+	appWindow := map[string]string{
+		"Address": ipcClient.Address,
+		"Title":   ipcClient.Title,
+	}
+
+	if item.IndicatorImage != nil {
+		item.IndicatorImage.Destroy()
+	}
+
+	indicatorImage, err := GetIndicatorImage(item.Instances + 1)
+	if err == nil {
+		item.ButtonBox.Add(indicatorImage)
+	}
+
+	item.Windows = append(item.Windows, appWindow)
+	item.IndicatorImage = indicatorImage
+	item.Instances += 1
+}
+
+func (item *Item) IsPinned() bool {
+	return slices.Contains(*item.PinnedList, item.ClassName)
+}
+
+func (item *Item) TogglePin() {
+	if item.IsPinned() {
+		utils.RemoveFromSliceByValue(item.PinnedList, item.ClassName)
+		if item.Instances == 0 {
+			item.ButtonBox.Destroy()
+			delete(item.List, item.ClassName)
+		}
+		log.Println("Remove:", item.ClassName)
+	} else {
+		utils.AddToSlice(item.PinnedList, item.ClassName)
+		log.Println("Add:", item.ClassName)
+	}
+
+	err := cfg.ChangeJsonPinnedApps(*item.PinnedList, settings.PinnedPath)
+	if err != nil {
+		log.Println("Error: ", err)
+	} else {
+		log.Println("File", settings.PinnedPath, "saved successfully!", item.ClassName)
+	}
+}
+
+func (item *Item) Remove() {
+	item.ButtonBox.Destroy()
+	delete(item.List, item.ClassName)
+}
+
+func GetIndicatorImage(instances int) (*gtk.Image, error) {
+	var path string
+	indicatorPath := filepath.Join(settings.CurrentThemeDir, "point")
+
+	switch {
+	case instances == 0:
+		path = filepath.Join(indicatorPath, "0.svg")
+	case instances == 1:
+		path = filepath.Join(indicatorPath, "1.svg")
+	case instances == 2:
+		path = filepath.Join(indicatorPath, "2.svg")
+	case instances > 2:
+		path = filepath.Join(indicatorPath, "3.svg")
+	}
+
+	return utils.CreateImageWidthScale(path, settings.Get().IconSize, 0.56)
+}
+```
+
+## ./internal/app/app.go
+```go
+package app
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"slices"
+
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/gtk"
+
+	"hypr-dock/internal/hypr/hyprOpt"
+	"hypr-dock/internal/item"
+	"hypr-dock/internal/pkg/utils"
+	"hypr-dock/internal/settings"
+	"hypr-dock/internal/state"
+	"hypr-dock/pkg/ipc"
+)
+
+func BuildApp(orientation gtk.Orientation, appState *state.State) *gtk.Box {
+	app, err := gtk.BoxNew(orientation, 0)
+	if err != nil {
+		log.Println("BuildApp() | app | gtk.BoxNew()")
+		log.Fatal(err)
+	}
+
+	addWindowMarginRule(app)
+	app.SetName("app")
+
+	itemsBox, _ := gtk.BoxNew(orientation, settings.Get().Spacing)
+	itemsBox.SetName("items-box")
+
+	switch orientation {
+	case gtk.ORIENTATION_HORIZONTAL:
+		itemsBox.SetMarginEnd(int(float64(settings.Get().Spacing) * 0.8))
+		itemsBox.SetMarginStart(int(float64(settings.Get().Spacing) * 0.8))
+	case gtk.ORIENTATION_VERTICAL:
+		itemsBox.SetMarginBottom(int(float64(settings.Get().Spacing) * 0.8))
+		itemsBox.SetMarginTop(int(float64(settings.Get().Spacing) * 0.8))
+	}
+
+	appState.SetItemsBox(itemsBox)
+	renderItems(appState)
+	app.Add(itemsBox)
+
+	return app
+}
+
+func renderItems(appState *state.State) {
+	clients, _ := ipc.GetClients()
+
+	for _, className := range settings.PinnedApps {
+		InitNewItemInClass(className, appState)
+	}
+
+	for _, ipcClient := range clients {
+		InitNewItemInIPC(ipcClient, appState)
+	}
+}
+
+func InitNewItemInIPC(ipcClient ipc.Client, appState *state.State) {
+	className := ipcClient.Class
+	if !slices.Contains(settings.PinnedApps, className) && appState.GetAddedApps().List[className] == nil {
+		InitNewItemInClass(className, appState)
+	}
+
+	appState.GetAddedApps().List[className].UpdateState(ipcClient)
+	appState.GetWindow().ShowAll()
+}
+
+func InitNewItemInClass(className string, appState *state.State) {
+	item, err := item.New(className)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	appItemEventHandler(item)
+
+	item.List = appState.GetAddedApps().List
+	item.PinnedList = &settings.PinnedApps
+	appState.GetAddedApps().Add(className, item)
+
+	appState.GetItemsBox().Add(item.ButtonBox)
+	appState.GetWindow().ShowAll()
+}
+
+func appItemEventHandler(item *item.Item) {
+	item.Button.Connect("button-release-event", func(button *gtk.Button, e *gdk.Event) {
+		event := gdk.EventButtonNewFromEvent(e)
+		if event.Button() == 3 {
+			menu, err := item.ContextMenu()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			menu.PopupAtWidget(item.Button, gdk.GDK_GRAVITY_NORTH, gdk.GDK_GRAVITY_SOUTH, nil)
+
+			return
+		}
+
+		if item.Instances == 0 {
+			utils.Launch(item.DesktopData.Exec)
+		}
+		if item.Instances == 1 {
+			ipc.Hyprctl("dispatch focuswindow address:" + item.Windows[0]["Address"])
+		}
+		if item.Instances > 1 {
+			menu, err := item.WindowsMenu()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			menu.PopupAtWidget(item.Button, gdk.GDK_GRAVITY_NORTH, gdk.GDK_GRAVITY_SOUTH, nil)
+		}
+	})
+}
+
+func RemoveApp(address string, appState *state.State) {
+	item, windowIndex, err := searhByAddress(address, appState)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	className := item.ClassName
+	if item.Instances == 1 && !slices.Contains(settings.PinnedApps, className) {
+		item.Remove()
+		return
+	}
+
+	item.RemoveLastInstance(windowIndex)
+
+	appState.GetWindow().ShowAll()
+}
+
+func searhByAddress(address string, appState *state.State) (*item.Item, int, error) {
+	for _, item := range appState.GetAddedApps().List {
+		for windowIndex, window := range item.Windows {
+			if window["Address"] == address {
+				return item, windowIndex, nil
+			}
+		}
+	}
+
+	err := errors.New("Window not found: " + address)
+	return nil, 0, err
+}
+
+func ChangeWindowTitle(address string, title string, appState *state.State) {
+	for _, data := range appState.GetAddedApps().List {
+		for _, appWindow := range data.Windows {
+			if appWindow["Address"] == address {
+				appWindow["Title"] = title
+			}
+		}
+	}
+}
+
+func addWindowMarginRule(app *gtk.Box) {
+	position := settings.Get().Position
+	var marginProvider *gtk.CssProvider
+
+	switch settings.Get().SystemGapUsed {
+	case "true":
+		margin, err := hyprOpt.GetGap()
+		if err != nil {
+			log.Println(err, "\nSet margin in config")
+			applyWindowMarginCSS(app, position, settings.Get().Margin)
+		}
+
+		marginProvider = applyWindowMarginCSS(app, position, margin[0])
+
+		hyprOpt.GapChangeEvent(func(gap int) {
+			utils.RemoveStyleProvider(app, marginProvider)
+			marginProvider = applyWindowMarginCSS(app, position, gap)
+			log.Println("Window margins updated successfully: ", gap)
+		})
+	case "false":
+		applyWindowMarginCSS(app, position, settings.Get().Margin)
+	}
+}
+
+func applyWindowMarginCSS(app *gtk.Box, position string, margin int) *gtk.CssProvider {
+	css := fmt.Sprintf("#app {margin-%s: %dpx;}", position, margin)
+
+	marginProvider, err := gtk.CssProviderNew()
+	if err != nil {
+		log.Printf("Failed to create CSS provider: %v", err)
+		return nil
+	}
+
+	appStyleContext, err := app.GetStyleContext()
+	if err != nil {
+		log.Printf("Failed to get style context: %v", err)
+		return nil
+	}
+
+	appStyleContext.AddProvider(marginProvider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+	err = marginProvider.LoadFromData(css)
+	if err != nil {
+		log.Printf("Failed to load CSS data: %v", err)
+		return nil
+	}
+
+	return marginProvider
+}
+```
